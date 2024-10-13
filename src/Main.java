@@ -6,10 +6,9 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        int filePathCount = 0; // Счётчик для верно указанных файлов
         int totalLines = 0; // Счётчик для количества строк
-        int maxLength = 0; //Длина самой длинной строки
-        int minLength = Integer.MAX_VALUE; // Длина самой короткой строки
+        int googleBotCount = 0; //Счетчик для GoogleBot
+        int yandexBotCount = 0; //Счетчик для YandexBot
 
         // Бесконечный цикл while
         while (true) {
@@ -29,8 +28,6 @@ public class Main {
                 System.out.println("Это не файл, а директория");
                 continue;
             }
-            // Если файл существует и это именно файл
-            filePathCount++; // Увеличиваем счетчик верно указанных файлов
 
             try {
                 FileReader fileReader = new FileReader(path);
@@ -38,20 +35,20 @@ public class Main {
                 String line;
 
                 while ((line = reader.readLine()) != null) {
-                    int length = line.length();
                     totalLines++;
 
-                    //Проверка длины строки
-                    if (length > 1024) {
-                        throw new LineLongException("Строка, длиной " + length + " символов больше допустимого значения в 1024 символов.");
+                    if (line.length() > 1024) {
+                        throw new LineLongException("Строка, длиной " + line.length() + " символов больше допустимого значения в 1024 символов.");
                     }
 
-                    //Обновление максимальной и минимальной длины строки
-                    if (length > maxLength) {
-                        maxLength = length;
-                    }
-                    if (length < minLength) {
-                        minLength = length;
+                    //Разбор строки лога
+                    String userAgent = extractUserAgent(line);
+                    if (userAgent != null) {
+                        if (userAgent.contains("Googlebot")) {
+                            googleBotCount++;
+                        } else if (userAgent.contains("YandexBot")) {
+                            yandexBotCount++;
+                        }
                     }
                 }
                 reader.close();
@@ -62,10 +59,23 @@ public class Main {
                 ex.printStackTrace();
             }
 
-            System.out.println("Путь указан верно. Это файл номер " + filePathCount);
-            System.out.println("Общее количество строк в файле " + totalLines);
-            System.out.println("Длина самой длинной строки в файле " + maxLength);
-            System.out.println("Длина самой короткой строки в файле " + (minLength == Integer.MAX_VALUE ? 0 : minLength));
+            //Подсчет доли запросов от гугл и яндекс ботов
+            double googleBotPart = totalLines == 0 ? 0 : ((double) googleBotCount / totalLines) * 100;
+            double yandexBotPart = totalLines == 0 ? 0 : ((double) yandexBotCount / totalLines) * 100;
+
+            //Вывод результатов
+            System.out.println("Количество строк в файле: " + totalLines);
+            System.out.println("Доля запросов от Googlebot: " + googleBotPart);
+            System.out.println("Доля запросов от YandexBot: " + yandexBotPart);
         }
+    }
+
+    //Метод для извлечения юзер агента
+    private static String extractUserAgent(String line) {
+        String[] parts = line.split("\""); // Разбиваем строку по кавычкам
+        if (parts.length > 5) {
+            return parts[5]; // User-Agent обычно находится в шестой части (индекс 5)
+        }
+        return null; //
     }
 }
