@@ -24,21 +24,30 @@ public class Main {
                 break;
             }
 
-            // Обработка файла
+            // Создаём объект File для указанного пути
             File file = new File(path);
-            if (!file.exists() || !file.isFile()) {
-                System.out.println("Файл не существует или это не файл. Попробуйте снова.");
+
+            // Проверяем, существует ли файл
+            boolean fileExists = file.exists();
+            // Проверяем, является ли путь файлом (а не папкой)
+            boolean isDirectory = file.isDirectory();
+            // Условие проверки: файл не существует или это не файл
+            if (!fileExists) {
+                System.out.println("Файл не существует");
+                continue;
+            } else if (isDirectory) {
+                System.out.println("Это не файл, а директория");
                 continue;
             }
 
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line;
+
                 while ((line = reader.readLine()) != null) {
                     totalLines++;
-                    // Проверяем длину строки
+
                     if (line.length() > 1024) {
-                        System.out.println("Строка длиной " + line.length() + " символов превышает допустимое значение в 1024 символа.");
-                        continue;
+                        throw new LineLongException("Строка, длиной " + line.length() + " символов больше допустимого значения в 1024 символа.");
                     }
 
                     // Разбор строки лога
@@ -61,8 +70,11 @@ public class Main {
                         }
                     }
                 }
-            } catch (IOException e) {
-                System.out.println("Ошибка при чтении файла: " + e.getMessage());
+            } catch (LineLongException e) {
+                System.out.println(e.getMessage());
+                continue;
+            } catch (IOException ex) {
+                System.out.println("Ошибка при чтении файла: " + ex.getMessage());
             }
 
             // Подсчет доли запросов от Google и Yandex ботов
