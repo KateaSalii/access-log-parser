@@ -3,6 +3,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Scanner;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
@@ -83,6 +85,19 @@ public class Main {
 
             // Подсчет среднего трафика за час
             double trafficRate = statistics.getTrafficRate();
+
+            // Получение всех существующих страниц
+            System.out.println("Список всех существующих страниц:");
+            for (String page : statistics.getAllPages()) {
+                System.out.println(page);
+            }
+
+            // Получение статистики по операционным системам
+            System.out.println("Статистика по операционным системам:");
+            Map<String, Double> osStatistics = statistics.getOsStatistics();
+            for (Map.Entry<String, Double> entry : osStatistics.entrySet()) {
+                System.out.println("OS: " + entry.getKey() + ", Доля: " + entry.getValue());
+            }
 
             // Вывод результатов
             System.out.println("Количество строк в файле: " + totalLines);
