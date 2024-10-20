@@ -9,11 +9,13 @@ public class Statistics {
     private OffsetDateTime minTime;
     private OffsetDateTime maxTime;
 
-    //Переменная для хранения уникальных страниц сайта
-    private Set<String> uniquePages;
+    //Переменные для хранения страниц сайта
+    private Set<String> uniquePages; //Переменная для существующих страниц (код 200)
+    private Set<String> nonExistentPages; //Переменная для несуществующих страниц (код 404)
 
     //Переменная для хранения статистики операционных систем
-    private HashMap<String, Integer> osStats;
+    private HashMap<String, Integer> osStats; //Статистика по ОС
+    private HashMap<String, Integer> browserStats; //Статистика по браузерам
 
     public Statistics() {
         totalTraffic = 0;
@@ -22,7 +24,9 @@ public class Statistics {
 
         //Инициализация коллекций
         uniquePages = new HashSet<>();
+        nonExistentPages = new HashSet<>();
         osStats = new HashMap<>();
+        browserStats = new HashMap<>();
     }
     //Метод дл добавления записи в статистику
     public void addEntry(LogEntry entry) {
@@ -41,14 +45,28 @@ public class Statistics {
             uniquePages.add(entry.getRequestPath());
         }
 
+        //Добавления страницы, если код ответа 404
+        if (entry.getResponseCode() == 404) {
+            nonExistentPages.add(entry.getRequestPath());
+        }
+
         //Получение ОС пользователя и обновления статистики ОС
         String os = entry.getUserAgent().getOs();
         osStats.put(os, osStats.getOrDefault(os, 0) + 1);
+
+        //Обновление статистики браузеров
+        String browser = entry.getUserAgent().getBrowser();
+        browserStats.put(browser, browserStats.getOrDefault(browser, 0) + 1);
     }
 
-    //Метод для получения списка всех уникальных страниц сайта
+    //Метод для получения списка всех уникальных страниц сайта c кодом 200
     public Set<String> getAllPages() {
         return uniquePages;
+    }
+
+    //Метод для получения списка всех уникальных страниц сайта c кодом 404
+    public Set<String> getNonExistentPages() {
+        return nonExistentPages;
     }
     //Метод для расчета долей ОС
     public Map<String, Double> getOsStatistics() {
@@ -62,6 +80,20 @@ public class Statistics {
         }
 
         return osDistribution;
+    }
+
+    //Метод для расчета долей браузеров
+    public Map<String, Double> getBrowserStatistics() {
+        Map<String, Double> browserDistribution = new HashMap<>();
+        int totalEntries = browserStats.values().stream().mapToInt(Integer::intValue).sum();
+
+        // Расчет долей для каждого браузера
+        for (Map.Entry<String, Integer> entry : browserStats.entrySet()) {
+            double browserShare = (totalEntries > 0) ? (double) entry.getValue() / totalEntries : 0;
+            browserDistribution.put(entry.getKey(), browserShare);
+        }
+
+        return browserDistribution;
     }
     //Метод для расчета среднего трафика за час
     public double getTrafficRate() {

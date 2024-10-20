@@ -86,9 +86,15 @@ public class Main {
             // Подсчет среднего трафика за час
             double trafficRate = statistics.getTrafficRate();
 
-            // Получение всех существующих страниц
+            // Получение всех существующих страниц (код 200)
             System.out.println("Список всех существующих страниц:");
             for (String page : statistics.getAllPages()) {
+                System.out.println(page);
+            }
+
+            // Получение всех несуществующих страниц (код 404)
+            System.out.println("Список всех несуществующих страниц:");
+            for (String page : statistics.getNonExistentPages()) {
                 System.out.println(page);
             }
 
@@ -97,6 +103,13 @@ public class Main {
             Map<String, Double> osStatistics = statistics.getOsStatistics();
             for (Map.Entry<String, Double> entry : osStatistics.entrySet()) {
                 System.out.println("OS: " + entry.getKey() + ", Доля: " + entry.getValue());
+            }
+
+            // Получение статистики по браузерам
+            System.out.println("Статистика по браузерам:");
+            Map<String, Double> browserStatistics = statistics.getBrowserStatistics();
+            for (Map.Entry<String, Double> entry : browserStatistics.entrySet()) {
+                System.out.println("Browser: " + entry.getKey() + ", Доля: " + entry.getValue());
             }
 
             // Вывод результатов
