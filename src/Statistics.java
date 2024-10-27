@@ -16,6 +16,9 @@ public class Statistics {
     //Переменная для хранения статистики операционных систем
     private HashMap<String, Integer> osStats; //Статистика по ОС
     private HashMap<String, Integer> browserStats; //Статистика по браузерам
+    private int validUserVisits; //Количество корректных посещений
+    private int errorRequests; //Количество ошибочных запросов
+    private Set<String> uniqueUserIp; // IP адреса пользователей
 
     public Statistics() {
         totalTraffic = 0;
@@ -27,6 +30,9 @@ public class Statistics {
         nonExistentPages = new HashSet<>();
         osStats = new HashMap<>();
         browserStats = new HashMap<>();
+        validUserVisits = 0;
+        errorRequests = 0;
+        uniqueUserIp = new HashSet<>();
     }
     //Метод дл добавления записи в статистику
     public void addEntry(LogEntry entry) {
@@ -39,6 +45,10 @@ public class Statistics {
         if (entry.getRequestTime().isAfter(maxTime)) {
             maxTime = entry.getRequestTime();
         }
+        //Проверка на код ответа 4хх или 5хх
+        if (entry.getResponseCode() >= 400) {
+            errorRequests++;
+        }
 
         //Добавления страницы, если код ответа 200
         if (entry.getResponseCode() == 200) {
@@ -48,6 +58,16 @@ public class Statistics {
         //Добавления страницы, если код ответа 404
         if (entry.getResponseCode() == 404) {
             nonExistentPages.add(entry.getRequestPath());
+        }
+
+        //Получение информации о пользователе
+        String userAgent = entry.getUserAgent().getBrowser();
+        String ipAddress = entry.getIp();
+
+        //Проверка на то, является ли пользователь ботом
+        if (!entry.getUserAgent().isBot()) {
+            validUserVisits++;
+            uniqueUserIp.add(ipAddress);
         }
 
         //Получение ОС пользователя и обновления статистики ОС
@@ -99,5 +119,23 @@ public class Statistics {
     public double getTrafficRate() {
         long hoursDifference = (maxTime.toEpochSecond() - minTime.toEpochSecond()) / 3600;
         return (hoursDifference > 0) ? (double) totalTraffic / hoursDifference : totalTraffic;
+    }
+
+    //Метод для расчета среднего количества посещений за час
+    public double getAverageVisitsPerHour() {
+        long hoursDifference = (maxTime.toEpochSecond() - minTime.toEpochSecond()) / 3600;
+        return (hoursDifference > 0) ? (double) validUserVisits / hoursDifference : validUserVisits;
+    }
+
+    //Метод для расчета среднего ошибочных запросов за час
+    public double getAverageErrorRequestsPerHour() {
+        long hoursDifference = (maxTime.toEpochSecond() - minTime.toEpochSecond()) / 3600;
+        return (hoursDifference > 0) ? (double) errorRequests / hoursDifference : errorRequests;
+    }
+
+    //Метод для расчета средней посещаемости одним пользователем
+    public double getAverageVisitsPerUser() {
+        int uniqueUsers = uniqueUserIp.size();
+        return (uniqueUsers > 0) ? (double) validUserVisits / uniqueUsers : validUserVisits;
     }
 }

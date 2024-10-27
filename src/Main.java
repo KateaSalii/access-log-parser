@@ -117,6 +117,17 @@ public class Main {
             System.out.println("Доля запросов от Googlebot: " + googleBotPart + "%");
             System.out.println("Доля запросов от YandexBot: " + yandexBotPart + "%");
             System.out.println("Средний трафик за час: " + trafficRate + " байт/час");
+
+            //Вывод статистики за час
+            double avgVisitsPerHour = statistics.getAverageVisitsPerHour();
+            System.out.println("Среднее количество посещений за час: " + avgVisitsPerHour);
+
+            double avgErrorRequestsPerHour = statistics.getAverageErrorRequestsPerHour();
+            System.out.println("Среднее количество ошибочных запросов за час: " + avgErrorRequestsPerHour);
+
+            //Вывод средней посещаемости одного пользователя
+            double avgVisitsPerUser = statistics.getAverageVisitsPerUser();
+            System.out.println("Средняя посещаемость одного пользователя: " + avgVisitsPerUser);
         }
     }
 
