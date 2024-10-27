@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,6 +21,10 @@ public class Statistics {
     private int errorRequests; //Количество ошибочных запросов
     private Set<String> uniqueUserIp; // IP адреса пользователей
 
+    private HashMap<Integer, Integer> visitsPerSecond; //Пиковая посещаемость в секунду
+    private HashSet<String> refererDomains; //Список доменов
+    private HashMap<String, Integer> visitsPerUser; //Посещения по ip
+
     public Statistics() {
         totalTraffic = 0;
         minTime = OffsetDateTime.MAX;
@@ -33,6 +38,9 @@ public class Statistics {
         validUserVisits = 0;
         errorRequests = 0;
         uniqueUserIp = new HashSet<>();
+        visitsPerSecond = new HashMap<>();
+        refererDomains = new HashSet<>();
+        visitsPerUser = new HashMap<>();
     }
     //Метод дл добавления записи в статистику
     public void addEntry(LogEntry entry) {
@@ -68,6 +76,8 @@ public class Statistics {
         if (!entry.getUserAgent().isBot()) {
             validUserVisits++;
             uniqueUserIp.add(ipAddress);
+            updateVisitsPerSecond(entry.getRequestTime());
+            updateVisitsPerUser(ipAddress);
         }
 
         //Получение ОС пользователя и обновления статистики ОС
@@ -77,6 +87,65 @@ public class Statistics {
         //Обновление статистики браузеров
         String browser = entry.getUserAgent().getBrowser();
         browserStats.put(browser, browserStats.getOrDefault(browser, 0) + 1);
+
+        updateRefererDomains(entry.getReferer());
+    }
+
+    //Метод для обновления пиков посещений в секунду
+    private void updateVisitsPerSecond(OffsetDateTime time) {
+        int second = (int) time.toEpochSecond();
+        visitsPerSecond.put(second, visitsPerSecond.getOrDefault(second, 0) + 1);
+    }
+
+    //Метод для расчета пиковой посещаемости сайта в секунду
+    public int getPeakVisitsPerSecond(){
+        int maxVisits = 0;
+        for (int visits : visitsPerSecond.values()){
+            if (visits > maxVisits) {
+                maxVisits = visits;
+            }
+        }
+        return maxVisits;
+    }
+
+    //Метод для обновления рефереров
+    private void updateRefererDomains(String referer) {
+        if (referer != null && !referer.isEmpty()) {
+            String domain = extractDomain(referer);
+            if (domain != null) {
+                refererDomains.add(domain);
+            }
+        }
+    }
+
+    //Метод для извлечения домена из URL реферера
+    private String extractDomain(String url) {
+        try {
+            String[] parts = url.split("/+");
+            return parts.length > 1 ? parts[1] : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    //Метод для получения списка доменов-референтов
+    public Set<String> getRefererDomains() {
+        return refererDomains;
+    }
+    // Метод для обновления количества посещений для каждого пользователя
+    private void updateVisitsPerUser(String ipAddress) {
+        visitsPerUser.put(ipAddress, visitsPerUser.getOrDefault(ipAddress, 0) + 1);
+    }
+
+    // Метод для расчёта максимальной посещаемости одним пользователем
+    public int getMaxVisitsPerUser() {
+        int maxVisits = 0;
+        for (int visits : visitsPerUser.values()) {
+            if (visits > maxVisits) {
+                maxVisits = visits;
+            }
+        }
+        return maxVisits;
     }
 
     //Метод для получения списка всех уникальных страниц сайта c кодом 200

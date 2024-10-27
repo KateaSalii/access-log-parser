@@ -3,7 +3,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Scanner;
-import java.util.HashMap;
+import java.util.Set;
 import java.util.Map;
 
 public class Main {
@@ -128,6 +128,21 @@ public class Main {
             //Вывод средней посещаемости одного пользователя
             double avgVisitsPerUser = statistics.getAverageVisitsPerUser();
             System.out.println("Средняя посещаемость одного пользователя: " + avgVisitsPerUser);
+
+            //Вывод пиковой посещаемости
+            int peakVisitsPerSecond = statistics.getPeakVisitsPerSecond();
+            System.out.println("Пиковая посещаемость сайта в секунду: " + peakVisitsPerSecond);
+
+            //Вывод списка сайтов, с которых есть ссылки на текущий сайт
+            Set<String> refererDomains = statistics.getRefererDomains();
+            System.out.println("Список сайтов, с которых есть ссылки на текущий сайт:");
+            for (String domain : refererDomains) {
+                System.out.println(domain);
+            }
+
+            //Вывод максимального количества посещений одним пользователем
+            int maxVisitsPerUser = statistics.getMaxVisitsPerUser();
+            System.out.println("Максимальное количество посещений одним пользователем: " + maxVisitsPerUser);
         }
     }
 
